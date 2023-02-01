@@ -1,0 +1,152 @@
+@charset "utf-8";
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap');
+:root{
+    --f-fam:'Outfit', sans-serif;
+    --bg : hsl(200,60%,70%);
+    --bg-cell : hsl(200,100%,85%);
+    --f1: hsl(200,100%,10%);
+    --f2 :hsl(200,100%,25%);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+li{list-style-type:none;} img{vertical-align:middle;}
+
+body{
+    background:var(--bg);
+    font-family:var(--f-fam); font-size:18px; color:var(--f1);
+    transition:filter .3s .3s linear;
+}
+
+.blur{
+    filter:blur(20px);
+    overflow:hidden;
+}
+
+/* 📌 [공통] */
+.lbl{
+    text-transform:uppercase;
+    font-weight:600; font-size:.8em; color:var(--f2);
+}
+
+/* 📌 유닛 */
+.val-unit{
+    margin-left:.2em;
+    font-size:.7em;
+}
+
+/* 📌 [CURRENT] */
+#wrap-curr{
+    display:flex;flex-flow:row wrap;
+    justify-content:center;align-items:center; 
+    gap:20px 40px;
+    position:relative;
+    max-width:calc(100% - 40px);
+    padding:40px 20px; margin:20px auto;
+    background:var(--bg-cell);
+    border:2px solid var(--f1); border-radius:20px;
+}
+
+/* left */
+#curr-left{
+    display:flex; flex-flow:row wrap;
+    justify-content:center;align-items:center;
+    gap:0 20px;
+    position:relative;
+    text-align:center;
+}
+[data-curr-icon]{
+    width:100px; aspect-ratio:1/1;
+}
+[data-curr-temp]{
+    font-size:80px;
+}
+/* right */
+#curr-right{
+    display:flex; flex-flow:row wrap;
+    justify-content:center; align-items:center;
+    gap:10px 0;
+    position:relative;
+    text-align:center;
+}
+#curr-right > li{
+    /* outline:1px solid red; */
+    position:relative;
+    padding:0 20px;
+    border-left:1px solid hsl(200,100%,40%);
+    text-align:center;
+}
+    #curr-right > li:first-child{
+        border-left:none;
+    }
+
+#curr-right [class ^= "val-"]:not(.val-unit){
+    font-size:1.5rem;
+}
+
+/* 📌 [DAYS] */
+/* wrap */
+#wrap-days{
+    display:grid;
+    grid-template-columns: repeat(auto-fit,120px);
+    justify-content:center;
+    gap:20px;
+    position:relative;
+    width:calc(100% - 40px);
+    margin:20px auto;
+}
+/* card */
+.day-card{
+    position:relative;
+    padding:15px 10px;
+    background:var(--bg-cell);
+    border:2px solid var(--f2); border-radius:10px;
+    text-align:center;
+}
+.day-card .ic{
+    width:50px; height:50px; object-fit:contain;;
+}
+.day-card .lbl{
+    margin:10px 0 0px;
+}
+.day-card .val-temp{
+    font-size:1.4rem;
+}
+/* 📌 [HOURS] */
+#tbl-hours{
+    table-layout:fixed;
+    border-spacing:2px 10px; border-collapse:separate;
+    position:relative;
+    width:100%;
+    text-align:center;
+}
+caption{display:none;}
+
+#tbl-hours tr:nth-child(odd){
+    background:hsl(200,100%,92%);;
+}
+#tbl-hours tr:nth-child(even){
+    background:hsl(200,100%,90%);;
+}
+#tbl-hours td{
+    padding:10px;
+}
+
+/* 시간 */
+#tbl-hours .val-time{
+    font-size:2rem;
+}
+.val-time-am::after,
+.val-time-pm::after{
+    margin-left:.1em;
+    font-size:0.6em; font-weight:500; color:var(--f2);
+}
+.val-time-am::after{
+    content:"AM"
+}
+.val-time-pm::after{
+    content:'PM'
+}
+/* 아이콘 */
+#tbl-hours .ic{
+    width:40px;
+}
