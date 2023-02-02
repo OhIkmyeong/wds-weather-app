@@ -5,6 +5,28 @@ export class WeatherAPI {
         this.urlFull = 'https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m,apparent_temperature,precipitation,weathercode,windspeed_10m&daily=weathercode,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum&current_weather=true&timeformat=unixtime&timezone=Asia%2FTokyo';
     }//constructor
 
+    /** init */
+    async init(){
+        navigator.geolocation.getCurrentPosition(this.success, this.fail);
+    }//init
+    
+    /** 좌표 받아오는거 성공했을시 */
+    success = async ({coords}) => {
+        const {latitude:lat, longitude:lon} = coords;
+        const timezone = this.get_time_zone();
+        console.log(lat,lon,timezone);
+        const data = await this.get_weather(lat,lon,timezone);
+        if(!data) return;
+        const APP = new WeatherApp();
+        APP.init(data);
+    }
+
+    /** 좌표 받기 실패 */
+    fail = e =>{
+        console.error("위치 정보 받아오기 실패. 위치정보활성화를 해주세요. There was an error getting your location. Please allow us to use your location and refresh the page");
+        document.body.innerHTML = '';
+    }
+
     /** get time zone
      * @returns {String} ex: Asia/Seoul
      */
@@ -30,6 +52,10 @@ export class WeatherAPI {
                     daily: this.parse_daily_weather(data),
                     hourly: this.parse_hourly_weather(data),
                 }
+            })
+            .catch(e=>{
+                console.error(e);
+                alert('Error');
             });
     }//get_weather
 
@@ -132,8 +158,8 @@ export class WeatherApp {
      * @param {String}value
      * @param {DOM}parent
      */
-    set_value(selector,value,{parent=document} = {}){
-        const $dom = parent.querySelector(`[data-${selector}`); 
+    set_value(selector, value, { parent = document } = {}) {
+        const $dom = parent.querySelector(`[data-${selector}`);
         $dom.textContent = value;
         return $dom;
     }//set_value
@@ -142,7 +168,7 @@ export class WeatherApp {
      * iconCode에 맞춰 맞는 svg이미지 url을 가져옴
      * @param {Number}iconCode
      */
-    get_icon_url(iconCode){
+    get_icon_url(iconCode) {
         return `./img/${ICON_MAP.get(iconCode)}.svg`;
     }//get_icon_url
 
@@ -151,28 +177,34 @@ export class WeatherApp {
      * @param {Number} timestamp
      * @url https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat
      */
-    day_formatter(timestamp){
-        return new Intl.DateTimeFormat("en-US", {weekday : "long"}).format(timestamp);
+    day_formatter(timestamp) {
+        return new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(timestamp);
     }//day_formatter
 
+    /**
+     * timestamp를 시간대로 바꿔준다
+    */
+    time_formatter(timestamp) {
+        return new Intl.DateTimeFormat("en-US", { hour: "numeric" }).format(timestamp);
+    }//time_formatter
     /**
      * 현재 날씨
      * @param {Object}data
      */
     render_curr(data) {
-        console.log(data);
+        // console.log(data);
         const $wrap = document.getElementById('wrap-curr');
         const $img = $wrap.querySelector('.ic');
 
-        const {currentTemp,highFeelsLike,highTemp,iconCode,lowFeelsLike,lowTemp,precip,windSpeed} = data;
+        const { currentTemp, highFeelsLike, highTemp, iconCode, lowFeelsLike, lowTemp, precip, windSpeed } = data;
 
-        this.set_value('curr-temp',currentTemp);
-        this.set_value('curr-high',highTemp);
-        this.set_value('curr-high-fl',highFeelsLike);
-        this.set_value('curr-wind',windSpeed);
-        this.set_value('curr-low',lowTemp);
-        this.set_value('curr-low-fl',lowFeelsLike);
-        this.set_value('curr-prcp',precip);
+        this.set_value('curr-temp', currentTemp);
+        this.set_value('curr-high', highTemp);
+        this.set_value('curr-high-fl', highFeelsLike);
+        this.set_value('curr-wind', windSpeed);
+        this.set_value('curr-low', lowTemp);
+        this.set_value('curr-low-fl', lowFeelsLike);
+        this.set_value('curr-prcp', precip);
         $img.src = this.get_icon_url(iconCode);
 
         const $$val = $wrap.querySelectorAll('[class ^= "val-"]');
@@ -183,26 +215,26 @@ export class WeatherApp {
      * 주간 날씨
      * @param {Object}data
      */
-    render_daily(data) { 
+    render_daily(data) {
         const $wrap = document.getElementById('wrap-days');
         const $temp = $wrap.querySelector('template');
         const $frag = document.createDocumentFragment();
 
-        data.forEach(daily =>{
-            const {timestamp,iconCode,maxTemp} = daily;
+        data.forEach(daily => {
+            const { timestamp, iconCode, maxTemp } = daily;
             const $clone = $temp.content.cloneNode(true);
 
             const $img = $clone.querySelector('[data-days-ic]');
             $img.src = this.get_icon_url(iconCode);
-            
-            this.set_value('days-day',this.day_formatter(timestamp),{parent:$clone});
-            
-            const $tempDaily = this.set_value('days-temp',maxTemp,{parent:$clone});
+
+            this.set_value('days-day', this.day_formatter(timestamp), { parent: $clone });
+
+            const $tempDaily = this.set_value('days-temp', maxTemp, { parent: $clone });
             this.add_unit($tempDaily);
 
             $frag.appendChild($clone);
         });
-        
+
         $wrap.innerHTML = '';
         $wrap.appendChild($frag);
         console.log(data);
@@ -212,28 +244,54 @@ export class WeatherApp {
      * 시간별 날씨
      * @param {Object}data
      */
-    render_hourly(data) { }//render_hourly
+    render_hourly(data) {
+        console.log(data);
+        const $table = document.getElementById('tbl-hours');
+        const $tbody = $table.getElementsByTagName('TBODY')[0];
+        const $temp = $tbody.querySelector('TEMPLATE');
+        const $frag = document.createDocumentFragment();
+
+        data.forEach(obj => {
+            const { timestamp, iconCode, temp, feelsLike, windSpeed, precip } = obj;
+            const $clone = $temp.content.cloneNode(true);
+            const $img = $clone.querySelector('[data-hourly-ic');
+            $img.src = this.get_icon_url(iconCode);
+            this.set_value("hourly-day",this.day_formatter(timestamp),{parent:$clone});
+            this.set_value("hourly-hour",this.time_formatter(timestamp), { parent: $clone })
+            this.add_unit(this.set_value("hourly-temp", temp, { parent: $clone }));
+            this.add_unit(this.set_value("hourly-temp-fl", feelsLike, { parent: $clone }));
+            this.add_unit(this.set_value("hourly-wind", windSpeed, { parent: $clone }));
+            this.add_unit(this.set_value("hourly-prcp", precip, { parent: $clone }));
+            $frag.appendChild($clone);
+        });
+
+        $tbody.innerHTML = '';
+        $tbody.appendChild($frag);
+    }//render_hourly
 
     /**
      * @param {DOM} $dom
      */
-    add_unit($dom){
+    add_unit($dom) {
         const type = $dom.classList[0].split('-')[1];
         const $sup = document.createElement('SPAN');
         $sup.classList.add('val-unit');
 
-        switch(type){
-            case "temp" :
+        switch (type) {
+            case "temp":
                 // $sup.innerHTML =  '&deg;'; //Farenheit
-                $sup.innerHTML =  '°C';
+                $sup.innerHTML = '°C';
                 break;
-            case "wind" : 
+            case "wind":
                 $sup.innerHTML = 'km/h';
                 break;
-            case "inch" :
+            case "prcp":
+                $sup.innerHTML = 'in';
+                break;
+            case "inch":
                 $sup.innerHTML = 'inch';
                 break;
-            default : break;
+            default: break;
         }
         $dom.appendChild($sup);
     }//add_unit

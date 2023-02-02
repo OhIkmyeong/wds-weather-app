@@ -9,6 +9,10 @@
     <script src="./js/main.js" type="module"></script>
 </head>
 <body class="blur">
+    <!--  -->
+    <a href="https://www.youtube.com/watch?v=w0VEOghdMpQ&t=2411s" target="_blank">
+        How To Build A Weather App In JavaScript Without Needing A Server by Web Dev Simplified
+    </a>
     <!-- [CURR] -->
     <section id="wrap-curr">
         <article id="curr-left">
@@ -70,27 +74,27 @@
             <template>
                 <tr>
                     <td>
-                        <p class="lbl">MONDAY</p>
-                        <p class="val-time val-time-pm">3</p>
+                        <p class="lbl" data-hourly-day>MONDAY</p>
+                        <p class="val-time" data-hourly-hour>3</p>
                     </td>
                     <td>
-                        <img src="./img/sun.svg" alt="" class="ic">
+                        <img src="./img/sun.svg" alt="" class="ic" data-hourly-ic>
                     </td>
                     <td>
                         <p class="lbl">TEMP</p>
-                        <div class="val-temp">31</div>
+                        <div class="val-temp" data-hourly-temp>31</div>
                     </td>
                     <td>
                         <p class="lbl">FL TEMP</p>
-                        <div class="val-temp">25</div>
+                        <div class="val-temp"data-hourly-temp-fl>25</div>
                     </td>
                     <td>
                         <p class="lbl">wind</p>
-                        <div class="val-wind">25</div>
+                        <div class="val-wind" data-hourly-wind>25</div>
                     </td>
                     <td>
                         <p class="lbl">PRECIP</p>
-                        <div class="val-prcp">25</div>
+                        <div class="val-prcp" data-hourly-prcp>25</div>
                     </td>
                 </tr>
             </template>
